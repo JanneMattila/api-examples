@@ -6,5 +6,5 @@ but changed into Visual Studio Code Rest Client format.
 ## Example Scenarios
 
 | Scenario |
-|---|---|
+|---|
 | [Create Azure AD Application](create-aad-app-scenario.http) |
