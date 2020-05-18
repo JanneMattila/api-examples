@@ -1,0 +1,67 @@
+# Note: Originally published in repository
+# https://github.com/JanneMattila/bookings-api-demo
+@endpoint = https://graph.microsoft.com/beta
+
+@accessToken = token
+
+### Fetch businesses
+# @name businesses
+GET {{endpoint}}/bookingBusinesses HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+### Fetch business by id
+# @name business
+@firstId = {{businesses.response.body.value[0].id}}
+GET {{endpoint}}/bookingBusinesses/{{firstId}} HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+### Fetch calendar view
+# @name calendarView
+@id = {{business.response.body.id}}
+@start = 2020-04-14T00:00:00Z
+@end = 2020-04-30T00:00:00Z
+GET {{endpoint}}/bookingBusinesses/{{id}}/calendarView?start={{start}}&end={{end}} HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+### Fetch appointments
+# @name appointments
+@id = {{business.response.body.id}}
+GET {{endpoint}}/bookingBusinesses/{{id}}/appointments HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+### Fetch first appointment
+# @name appointment
+@appointmentId = {{appointments.response.body.value[0].id}}
+GET {{endpoint}}/bookingBusinesses/{{id}}/appointments/{{appointmentId}} HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+### Fetch services
+# @name services
+@id = {{business.response.body.id}}
+GET {{endpoint}}/bookingBusinesses/{{id}}/services HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+### Fetch first service
+# @name service
+@serviceid = {{services.response.body.value[0].id}}
+GET {{endpoint}}/bookingBusinesses/{{id}}/services/{{serviceid}} HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+### Update first service
+# @name service
+@serviceid = {{services.response.body.value[0].id}}
+PATCH {{endpoint}}/bookingBusinesses/{{id}}/services/{{serviceid}} HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+    "@odata.type":"#microsoft.graph.bookingService",
+    "defaultDuration":"PT30M"
+}

@@ -10,6 +10,7 @@ but changed into Visual Studio Code Rest Client format.
 | Scenario                                                                   |
 |----------------------------------------------------------------------------|
 | [Create Azure AD Application](microsoftgraph/create-aad-app-scenario.http) |
+| [Bookings](microsoftgraph/bookings.http)                                   |
 
 ## Azure Resource Manager (ARM)
 
