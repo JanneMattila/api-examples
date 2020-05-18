@@ -18,3 +18,11 @@ but changed into Visual Studio Code Rest Client format.
 | Scenario                                                               |
 |------------------------------------------------------------------------|
 | [Query Log Analytics Workspace](arm/log-analytics-query-scenario.http) |
+
+## Azure Services
+
+### Example Scenarios
+
+| Scenario                      |
+|-------------------------------|
+| [Maps](azure/azure-maps.http) |
