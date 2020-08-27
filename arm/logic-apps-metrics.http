@@ -5,33 +5,29 @@
 # - Get access token using Azure CLI as Service Principal
 # az login --service-principal --username APP_ID --password PASSWORD --tenant TENANT_ID
 # az account get-access-token --resource https://management.azure.com
+#
+# Metrics list:
+# https://docs.microsoft.com/en-us/rest/api/monitor/metrics/list
+#
+# Supported metrics with Azure Monitor:
+# https://docs.microsoft.com/en-us/azure/azure-monitor/platform/metrics-supported
 ##
 @endpoint = https://management.azure.com
-@apiVersion = 2020-03-01-preview
+@apiVersion = 2018-01-01
 
 @subscription = guid
 @resourceGroupName = name
-@workspaceName = name
+@logicAppName = name
 
 @accessToken = token
 
-### Query workspace
-# 
-POST {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.OperationalInsights/workspaces/{{workspaceName}}/api/query?api-version={{apiVersion}} HTTP/1.1
+### Query: ActionsCompleted metric
+@metricnames = ActionsCompleted
+@timespan = 2020-08-27T00:00:00Z/2020-08-28T00:00:00Z
+@aggregation = sum
+GET {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.Logic/workflows/{{logicAppName}}/providers/microsoft.insights/metrics
+    ?api-version={{apiVersion}}
+    &metricnames={{metricnames}}
+    &timespan={{timespan}} HTTP/1.1
 Authorization: Bearer {{accessToken}}
 Content-type: application/json
-
-{ 
-  "query": "Perf | where CounterName == 'Available MBytes' | summarize avg(CounterValue) by bin(TimeGenerated, 1h)",
-  "timespan": "PT1H"
-}
-
-### Query workspace
-POST {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.OperationalInsights/workspaces/{{workspaceName}}/api/query?api-version={{apiVersion}} HTTP/1.1
-Authorization: Bearer {{accessToken}}
-Content-type: application/json
-
-{ 
-  "query": "AzureActivity",
-  "timespan": "PT1H"
-}
