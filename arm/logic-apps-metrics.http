@@ -1,0 +1,37 @@
+# Instructions:
+# - Get access token using Azure CLI as yourself (dev scenarios)
+# az account get-access-token --resource https://management.azure.com
+#
+# - Get access token using Azure CLI as Service Principal
+# az login --service-principal --username APP_ID --password PASSWORD --tenant TENANT_ID
+# az account get-access-token --resource https://management.azure.com
+##
+@endpoint = https://management.azure.com
+@apiVersion = 2020-03-01-preview
+
+@subscription = guid
+@resourceGroupName = name
+@workspaceName = name
+
+@accessToken = token
+
+### Query workspace
+# 
+POST {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.OperationalInsights/workspaces/{{workspaceName}}/api/query?api-version={{apiVersion}} HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+{ 
+  "query": "Perf | where CounterName == 'Available MBytes' | summarize avg(CounterValue) by bin(TimeGenerated, 1h)",
+  "timespan": "PT1H"
+}
+
+### Query workspace
+POST {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.OperationalInsights/workspaces/{{workspaceName}}/api/query?api-version={{apiVersion}} HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+{ 
+  "query": "AzureActivity",
+  "timespan": "PT1H"
+}
