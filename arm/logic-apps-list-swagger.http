@@ -1,0 +1,26 @@
+# Instructions:
+# - Get access token using Azure CLI as yourself (dev scenarios)
+# az account get-access-token --resource https://management.azure.com
+#
+# - Get access token using Azure CLI as Service Principal
+# az login --service-principal --username APP_ID --password PASSWORD --tenant TENANT_ID
+# az account get-access-token --resource https://management.azure.com
+#
+# Workflows - List Swagger:
+# https://docs.microsoft.com/en-us/rest/api/logic/workflows/listswagger
+#
+##
+@endpoint = https://management.azure.com
+@apiVersion = 2016-06-01
+
+@subscription = guid
+@resourceGroupName = name
+@logicAppName = name
+
+@accessToken = token
+
+### List swagger
+GET {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.Logic/workflows/{{logicAppName}}/listSwagger
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
