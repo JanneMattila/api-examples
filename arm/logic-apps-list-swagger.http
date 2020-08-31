@@ -20,7 +20,7 @@
 @accessToken = token
 
 ### List swagger
-GET {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.Logic/workflows/{{logicAppName}}/listSwagger
+POST {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.Logic/workflows/{{logicAppName}}/listSwagger
     ?api-version={{apiVersion}}
 Authorization: Bearer {{accessToken}}
 Content-type: application/json
