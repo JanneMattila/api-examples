@@ -1,0 +1,24 @@
+# Instructions:
+# - Get access token using Azure CLI as yourself (dev scenarios)
+# az account get-access-token --resource https://management.azure.com
+#
+# - Get access token using Azure CLI as Service Principal
+# az login --service-principal --username APP_ID --password PASSWORD --tenant TENANT_ID
+# az account get-access-token --resource https://management.azure.com
+#
+## 
+##
+@endpoint = https://management.azure.com
+@apiVersion = 2018-07-01-preview
+
+@subscription = guid
+@resourceGroupName = name
+@connectionName = name
+
+@accessToken = token
+
+### Verify API Connection
+GET {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.Web/connections/{{connectionName}}/extensions/proxy/testConnection
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
