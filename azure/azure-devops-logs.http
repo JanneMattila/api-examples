@@ -1,0 +1,19 @@
+@endpoint = https://dev.azure.com/
+@organization = orgname
+@projectName = projectname
+@pipelineId = pipelineid
+@runId = runId
+# base64(":" + pat)
+@auth = pat
+
+### Fetch list of logs
+# @name logs
+GET {{endpoint}}{{organization}}/_apis/pipelines/{pipelineId}/runs/{runId}/logs?api-version=6.0-preview.1 HTTP/1.1
+Content-type: application/json
+Authorization: Basic {{auth}}
+
+### Fetch first log
+@loogId = {{logs.response.body.value[0].id}}
+GET {{endpoint}}{{organization}}/_apis/pipelines/{pipelineId}/runs/{runId}/logs/{logId}?api-version=6.0-preview.1 HTTP/1.1
+Content-type: application/json
+Authorization: Basic {{auth}}
