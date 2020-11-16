@@ -1,0 +1,56 @@
+# Instructions:
+# - See API Reference (and especially required permissions): 
+# https://docs.microsoft.com/en-us/graph/api/resources/users?view=graph-rest-1.0
+#
+# - See other examples from Postman collection (and especially how to get token)
+# https://github.com/microsoftgraph/microsoftgraph-postman-collections
+#
+# - Alternative: Get access token using Azure CLI
+# az login --tenant yourtenant.onmicrosoft.com --allow-no-subscriptions
+# az account get-access-token --resource https://graph.microsoft.com/ -o tsv --query accessToken
+#
+# - Study your tokens permissions:
+# https://jwt.ms/
+#
+# - You should have following permissions (from above API reference page):
+#   Permission type  Permissions (from least to most privileged)
+#   Delegated        User.ReadWrite.All, Directory.ReadWrite.All, Directory.AccessAsUser.All
+#   Application      User.ReadWrite.All, Directory.ReadWrite.All
+#
+@endpoint = https://graph.microsoft.com/v1.0
+@tenant = yourtenant.onmicrosoft.com
+@accessToken = token
+
+### Get users
+GET {{endpoint}}/users
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+### Create user
+# @name user
+POST {{endpoint}}/users HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+{
+  "displayName": "Demo User",
+  "identities": [
+    {
+      "signInType": "emailAddress",
+      "issuer": "{{tenant}}",
+      "issuerAssignedId": "demo1@contoso.com"
+    }
+  ],
+  "passwordProfile" : {
+    "password": "SuP3rSecR3T!",
+    "forceChangePasswordNextSignIn": false
+  },
+  "passwordPolicies": "DisablePasswordExpiration"
+}
+
+### Fetch user by id
+# @name userEntity
+@userObjectId = {{user.response.body.id}}
+GET {{endpoint}}/users/{{userObjectId}} HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
