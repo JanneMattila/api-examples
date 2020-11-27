@@ -1,0 +1,62 @@
+# Instructions:
+# - Get access token (dev scenarios)
+# az account get-access-token --resource https://management.azure.com
+# (Get-AzAccessToken -ResourceUrl https://management.azure.com).Token | clip
+#
+# - Get access token using Azure CLI as Service Principal
+# az login --service-principal --username APP_ID --password PASSWORD --tenant TENANT_ID
+# az account get-access-token --resource https://management.azure.com
+#
+## 
+##
+@endpoint = https://management.azure.com
+@apiVersion = 2020-04-01
+
+@subscription = your_subcription_id
+@resourceGroupName = your_resource_group_name
+@accountName = your_cosmos_db_account_name
+@dbName = your_database_name
+
+@accessToken = token
+
+### Get autoscale value
+# @name scaleSettingsResponse
+GET {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.DocumentDB/databaseAccounts/{{accountName}}/sqlDatabases/{{dbName}}/throughputSettings
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+
+### Set autoscale value
+PUT {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.DocumentDB/databaseAccounts/{{accountName}}/sqlDatabases/{{dbName}}/throughputSettings
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+{
+  "properties": {
+    "resource": {
+      "autoscaleSettings": {
+        "maxThroughput": "4000"
+      }
+    }
+  }
+}
+
+###################################
+### Restore prvious autoscale value
+@maxThroughput = {{scaleSettingsResponse.response.body.value.properties.resource.autoscaleSettings.maxThroughput}}
+PUT {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.DocumentDB/databaseAccounts/{{accountName}}/sqlDatabases/{{dbName}}/throughputSettings
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+{
+  "properties": {
+    "resource": {
+      "autoscaleSettings": {
+        "maxThroughput": "{{maxThroughput}}"
+      }
+    }
+  }
+}
