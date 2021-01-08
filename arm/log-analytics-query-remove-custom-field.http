@@ -1,0 +1,30 @@
+# Instructions:
+#
+# - Get access token using Azure CLI as yourself (dev scenarios)
+# az account get-access-token --resource https://management.azure.com
+#
+# - Get access token using Azure CLI as Service Principal
+# az login --service-principal --username APP_ID --password PASSWORD --tenant TENANT_ID
+# az account get-access-token --resource https://management.azure.com
+#
+@endpoint = https://management.azure.com
+@apiVersion = 2020-03-01-preview
+
+@subscription = guid
+@resourceGroupName = name
+@workspaceName = name
+
+@accessToken = token
+
+### Get custom fields
+GET {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.OperationalInsights/workspaces/{{workspaceName}}/customfields?api-version={{apiVersion}} HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+### Remove custom field
+@sourceType = AzureDiagnostics
+@fieldName = ConfigurationMode_s
+
+DELETE {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.OperationalInsights/workspaces/{{workspaceName}}/customfields/{{sourceType}}!{{fieldName}}?api-version={{apiVersion}} HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
