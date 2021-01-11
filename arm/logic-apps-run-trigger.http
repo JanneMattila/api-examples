@@ -1,0 +1,27 @@
+# Instructions:
+# - Get access token using Azure CLI as yourself (dev scenarios)
+# az account get-access-token --resource https://management.azure.com
+#
+# - Get access token using Azure CLI as Service Principal
+# az login --service-principal --username APP_ID --password PASSWORD --tenant TENANT_ID
+# az account get-access-token --resource https://management.azure.com
+#
+# Logic Apps REST API:
+# Workflow Triggers - Run
+# https://docs.microsoft.com/en-us/rest/api/logic/workflowtriggers/run
+#
+##
+@endpoint = https://management.azure.com
+@apiVersion = 2016-10-01
+
+@subscription = guid
+@resourceGroupName = name
+@logicAppName = name
+@triggerName = name
+
+@accessToken = token
+
+### Run trigger
+POST {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.Logic/workflows/{{logicAppName}}/triggers/{{triggerName}}/run?api-version={{apiVersion}} HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
