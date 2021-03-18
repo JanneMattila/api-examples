@@ -1,0 +1,34 @@
+# Instructions:
+# - Get access token (dev scenarios)
+# az account get-access-token --resource https://management.azure.com
+# (Get-AzAccessToken -ResourceUrl https://management.azure.com).Token | clip
+#
+# - Get access token using Azure CLI as Service Principal
+# az login --service-principal --username APP_ID --password PASSWORD --tenant TENANT_ID
+# az account get-access-token --resource https://management.azure.com
+#
+# Link:
+# https://docs.microsoft.com/en-us/rest/api/eventgrid/version2020-10-15-preview/partnertopics
+## 
+##
+@endpoint = https://management.azure.com
+@apiVersion = 2020-10-15-preview
+@subscription = guid
+@resourceGroupName = name
+@partnerTopicName = name
+@accessToken = token
+
+### Get partner topic API versions
+GET {{endpoint}}/subscriptions/{{subscription}}/providers/Microsoft.EventGrid/partnerTopics?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+### Get partner topics
+GET {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.EventGrid/partnerTopics?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+### Get single partner topic
+GET {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.EventGrid/partnerTopics/{{partnerTopicName}}?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
