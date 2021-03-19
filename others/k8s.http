@@ -24,7 +24,7 @@
 GET {{endpoint}}/ HTTP/1.1
 Content-Type: application/json; charset=utf-8
 
-### API resource list
+### API resource list - v1
 GET {{endpoint}}/api/v1 HTTP/1.1
 Content-Type: application/json; charset=utf-8
 
@@ -38,4 +38,12 @@ Content-Type: application/json; charset=utf-8
 
 ### Fetch pod list
 GET {{endpoint}}/api/v1/pods HTTP/1.1
+Content-Type: application/json; charset=utf-8
+
+### API resource list - apps/v1
+GET {{endpoint}}/apis/apps/v1 HTTP/1.1
+Content-Type: application/json; charset=utf-8
+
+### Fetch deployment list
+GET {{endpoint}}/apis/apps/v1/deployments HTTP/1.1
 Content-Type: application/json; charset=utf-8
