@@ -3,9 +3,13 @@
 #
 # Extract target environment "client-key-data"
 # and base64 decode it to ".vscode/client.key"
+# Or use following command:
+# kubectl config view --raw -o jsonpath='{.users[?(@.name == "docker-desktop")].user.client-key-data}' | base64 --decode
 #
 # Extract target environment "client-certificate-data"
 # and base64 decode it to ".vscode/client.crt"
+# Or use following command:
+# kubectl config view --raw -o jsonpath='{.users[?(@.name == "docker-desktop")].user.client-certificate-data}' | base64 --decode
 #
 # Create following file to ".vscode/settings.json":
 # {
