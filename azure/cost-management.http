@@ -1,0 +1,70 @@
+# Instructions:
+# - Get access token (dev scenarios)
+# az account get-access-token --resource https://management.azure.com
+# (Get-AzAccessToken -ResourceUrl https://management.azure.com).Token | clip
+#
+# - Get access token using Azure CLI as Service Principal
+# az login --service-principal --username APP_ID --password PASSWORD --tenant TENANT_ID
+# az account get-access-token --resource https://management.azure.com
+#
+# Link:
+# https://docs.microsoft.com/en-us/rest/api/cost-management/query/usage
+## 
+##
+@endpoint = https://management.azure.com
+@apiVersion = 2019-11-01
+
+# Example scope: /subscriptions/91432a4d-c5e9-492f-a668-3f763bf2b5f7/resourceGroups/rg-service
+@scope = scope
+
+@accessToken = token
+
+### Get cost details
+POST {{endpoint}}/{{scope}}/providers/Microsoft.CostManagement/query?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+{
+  "type": "Usage",
+  "timeframe": "MonthToDate",
+  "dataset": {
+    "granularity": "Daily",
+    "filter": {
+      "and": [
+        {
+          "or": [
+            {
+              "dimensions": {
+                "name": "ResourceLocation",
+                "operator": "In",
+                "values": [
+                  "North Europe",
+                  "West Europe"
+                ]
+              }
+            },
+            {
+              "tags": {
+                "name": "Environment",
+                "operator": "In",
+                "values": [
+                  "UAT",
+                  "Prod"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "dimensions": {
+            "name": "ResourceGroup",
+            "operator": "In",
+            "values": [
+              "API"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
