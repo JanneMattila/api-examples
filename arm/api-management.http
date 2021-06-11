@@ -1,0 +1,25 @@
+# Instructions:
+# - Get access token using Azure CLI as yourself (dev scenarios)
+# az account get-access-token --resource https://management.azure.com
+#
+# - Get access token using Azure CLI as Service Principal
+# az login --service-principal --username APP_ID --password PASSWORD --tenant TENANT_ID
+# az account get-access-token --resource https://management.azure.com
+#
+# https://docs.microsoft.com/en-us/rest/api/apimanagement/2019-12-01/apis/list-by-service
+## 
+##
+@endpoint = https://management.azure.com
+@apiVersion = 2019-12-01
+
+@subscription = guid
+@resourceGroupName = name
+@serviceName = name
+
+@accessToken = token
+
+### List APIs
+GET {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.ApiManagement/service/{{serviceName}}/apis
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
