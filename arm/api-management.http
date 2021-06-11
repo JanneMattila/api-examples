@@ -23,3 +23,30 @@ GET {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupNa
     ?api-version={{apiVersion}}
 Authorization: Bearer {{accessToken}}
 Content-type: application/json
+
+### Import Petstore Swagger
+# @name importResponse
+PUT {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.ApiManagement/service/{{serviceName}}/apis/petstore
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+{
+  "properties": {
+    "format": "swagger-link-json",
+    "value": "http://petstore.swagger.io/v2/swagger.json",
+    "path": "petstore"
+  }
+}
+
+### Get import output
+@location = {{importResponse.response.headers.location}}
+GET {{location}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+### Get Petstore API
+GET {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.ApiManagement/service/{{serviceName}}/apis/petstore
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
