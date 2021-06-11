@@ -39,6 +39,17 @@ Content-type: application/json
   }
 }
 
+# Note: If you start multiple import you might get this error:
+# HTTP/1.1 409 Conflict
+
+# {
+#   "error": {
+#     "code": "PessimisticConcurrencyConflict",
+#     "message": "Operation on the API is in progress",
+#     "details": null
+#   }
+# }
+
 ### Get import output
 @location = {{importResponse.response.headers.location}}
 GET {{location}}
