@@ -61,3 +61,11 @@ GET {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupNa
     ?api-version={{apiVersion}}
 Authorization: Bearer {{accessToken}}
 Content-type: application/json
+
+### Get API Operation Policy
+@api = yourapi
+@apiOperation = yourapioperation
+GET {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.ApiManagement/service/{{serviceName}}/apis/{{api}}/operations/{{apiOperation}}/policies/policy
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
