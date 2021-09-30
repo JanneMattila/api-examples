@@ -1,0 +1,94 @@
+// https://docs.microsoft.com/en-us/rest/api/searchservice/
+@host = search.windows.net
+@instance = <your-search-instance-name>
+@index = <your-index>
+
+@apiVersion = 2020-06-30-Preview
+
+@endpoint = https://{{instance}}.{{host}}
+
+# Set api-key either here OR in the .vscode/settings.json
+# See documentation for more details (under "Environment Variables"):
+# https://marketplace.visualstudio.com/items?itemName=humao.rest-client
+@apiKey = <your-query-api-key>
+
+### Search documents
+# https://docs.microsoft.com/en-us/rest/api/searchservice/search-documents
+@search = *
+GET {{endpoint}}/indexes/{{index}}/docs?api-version={{apiVersion}}&search={{search}} HTTP/1.1
+Content-Type: application/json
+api-key: {{apiKey}}
+
+### Search documents with more details
+# https://docs.microsoft.com/en-us/rest/api/searchservice/search-documents
+POST {{endpoint}}/indexes/{{index}}/docs/search?api-version={{apiVersion}} HTTP/1.1
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{  
+    "count": true,
+    // "facets": [ "facet_expression_1", "facet_expression_2", ... ],  
+    // "filter": "odata_filter_expression",  
+    // "highlight": "highlight_field_1, highlight_field_2, ...",  
+    // "highlightPreTag": "pre_tag",  
+    // "highlightPostTag": "post_tag",  
+    // "minimumCoverage": # (% of index that must be covered to declare query successful; default 100),  
+    // "orderby": "orderby_expression",  
+    // "queryType": "simple" (default) | "full",
+    // "scoringParameters": [ "scoring_parameter_1", "scoring_parameter_2", ... ],  
+    // "scoringProfile": "scoring_profile_name",  
+    // "scoringStatistics" : "local" | "global",
+    "search": "*"
+    // "searchFields": "field_name_1, field_name_2, ...",  
+    // "searchMode": "any" (default) | "all",  
+    // "select": "field_name_1, field_name_2, ...",  
+    // "sessionId" : "session_id",
+    // "skip": # (default 0),  
+    // "top": #  
+}
+
+
+### Cound documents
+GET {{endpoint}}/indexes/{{index}}/docs/$count?api-version={{apiVersion}} HTTP/1.1
+Content-Type: application/json
+api-key: {{apiKey}}
+
+### Suggestions
+# https://docs.microsoft.com/en-us/rest/api/searchservice/suggestions
+POST {{endpoint}}/indexes/{{index}}/docs/suggest?api-version={{apiVersion}} HTTP/1.1
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{  
+    // "filter": "odata_filter_expression",  
+    "fuzzy": true,
+    // "highlightPreTag": "pre_tag",  
+    // "highlightPostTag": "post_tag",  
+    // "minimumCoverage": # (% of index that must be covered to declare query successful; default 80),  
+    // "orderby": "orderby_expression",  
+    "search": "mi",
+    // "searchFields": "field_name_1, field_name_2, ...",  
+    // "select": "field_name_1, field_name_2, ...",  
+    "suggesterName": "suggester_name"
+    // "top": # (default 5)  
+}
+
+
+### Autocomplete
+# https://docs.microsoft.com/en-us/rest/api/searchservice/autocomplete
+POST {{endpoint}}/indexes/{{index}}/docs/autocomplete?api-version={{apiVersion}} HTTP/1.1
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{  
+    // "autocompleteMode": "oneTerm" (default) | "twoTerms" | "oneTermWithContext",
+    // "filter": "odata_filter_expression",
+    "fuzzy": true,
+    // "highlightPreTag": "pre_tag",  
+    // "highlightPostTag": "post_tag",  
+    // "minimumCoverage": # (% of index that must be covered to declare query successful; default 80),
+    "search": "mi",
+    // "searchFields": "field_name_1, field_name_2, ...",
+    "suggesterName": "suggester_name",  
+    // "top": # (default 5)  
+}
