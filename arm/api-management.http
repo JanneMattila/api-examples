@@ -1,22 +1,55 @@
 # Instructions:
 # - Get access token using Azure CLI as yourself (dev scenarios)
-# az account get-access-token --resource https://management.azure.com
+# az account get-access-token --resource https://management.azure.com --query accessToken -o tsv | clip
 #
 # - Get access token using Azure CLI as Service Principal
 # az login --service-principal --username APP_ID --password PASSWORD --tenant TENANT_ID
-# az account get-access-token --resource https://management.azure.com
+# az account get-access-token --resource https://management.azure.com --query accessToken -o tsv | clip
 #
 # https://docs.microsoft.com/en-us/rest/api/apimanagement/2019-12-01/apis/list-by-service
 ## 
 ##
 @endpoint = https://management.azure.com
-@apiVersion = 2019-12-01
+@apiVersion = 2021-04-01-preview
 
 @subscription = guid
 @resourceGroupName = name
 @serviceName = name
 
 @accessToken = token
+
+### Get API Management instance and compute platform
+# https://docs.microsoft.com/en-us/azure/api-management/compute-infrastructure
+# Look for "platformVersion"
+GET {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.ApiManagement/service/{{serviceName}}
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+### Update compute platform to "stv2":
+# Create Standard Public IP with name "{{serviceName}}-pip".
+# Note: DNS name label is required!
+# @name updateComputeResponse
+PATCH {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.ApiManagement/service/{{serviceName}}
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+{
+  "properties": {
+    "virtualNetworkType": "external",
+    "virtualNetworkConfiguration": {
+      "subnetResourceId": "/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.Network/virtualNetworks/{{serviceName}}-vnet/subnets/apim",
+    },
+    "publicIpAddressId": "/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.Network/publicIPAddresses/{{serviceName}}-pip",
+    "platformVersion": "stv2"
+  }
+}
+
+### Update compute platform response status (poll to get status update)
+GET {{updateComputeResponse.response.headers.Location}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
 
 ### List APIs
 GET {{endpoint}}/subscriptions/{{subscription}}/resourceGroups/{{resourceGroupName}}/providers/Microsoft.ApiManagement/service/{{serviceName}}/apis
