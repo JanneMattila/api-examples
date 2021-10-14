@@ -12,11 +12,12 @@
 @endpoint = https://management.azure.com
 @apiVersion = 2021-04-01-preview
 
-@subscription = guid
-@resourceGroupName = name
-@serviceName = name
+@subscription = {{$dotenv subscription}}
+@resourceGroupName = {{$dotenv resourceGroup}}
+@serviceName = {{$dotenv serviceName}}
 
-@accessToken = token
+# echo "accessToken=$(az account get-access-token --resource https://management.azure.com --query accessToken -o tsv)" > .env
+@accessToken = {{$dotenv accessToken}}
 
 ### Get API Management instance and compute platform
 # https://docs.microsoft.com/en-us/azure/api-management/compute-infrastructure
