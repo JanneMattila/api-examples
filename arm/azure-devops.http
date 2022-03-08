@@ -1,0 +1,29 @@
+# Instructions:
+# - Get access token (dev scenarios)
+# az account get-access-token --resource https://management.azure.com
+# (Get-AzAccessToken -ResourceUrl https://management.azure.com).Token | clip
+#
+# - Get access token using Azure CLI as Service Principal
+# az login --service-principal --username APP_ID --password PASSWORD --tenant TENANT_ID
+# az account get-access-token --resource https://management.azure.com
+#
+# Azure DevOps Rest API:
+# https://docs.microsoft.com/en-us/rest/api/visualstudio/accounts
+## 
+##
+@endpoint = https://management.azure.com
+@apiVersion = 2014-04-01-preview
+
+@subscription = your_subcription_id
+@accessToken = token
+
+### Check name availability
+POST {{endpoint}}/subscriptions/{{subscription}}/providers/microsoft.visualstudio/checkNameAvailability
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+{
+  "resourceType": "Account",
+  "resourceName": "jannemattilademo2"
+}
