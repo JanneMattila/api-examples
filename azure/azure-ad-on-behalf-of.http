@@ -1,0 +1,193 @@
+# Scenario:
+# ---------
+#
+# You want to Azure AD based authentication
+# and leverage on-behalf-of flow
+# https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow
+# to pass user identity to the backend layers.
+#
+# This example shows following flow:
+# [Client App] -> [Api app 1] -> [Api App 2] -> [Microsoft Graph Api]
+#
+# How to setup auth demo:
+# -----------------------
+# (Note: Guids are clipped to prevent accidental copy-pasting of examples)
+# - Create Client App
+#   - Name: "Auth demo - App"
+#   - Allow public client flows: Yes
+#   - Api permissions:
+#     - Auth demo - Api 1: "Files.Read"
+# - Create Api App 1:
+#   - Name: "Auth demo - Api 1"
+#   - Expose an API:
+#     - Application ID URI: "api://1b0f77b0...20a1"
+#     - Scope: "Files.Read"
+#     - Authorized client application: Application (client) ID of "Auth demo - App"
+#   - Api permissions:
+#     - Auth demo - Api 2: "Backend.Read"
+# - Create Api App 2:
+#   - Name: "Auth demo - Api 2"
+#   - Expose an API:
+#     - Application ID URI: "api://d6deed60...d337"
+#     - Scope: "Backend.Read"
+#     - Authorized client application: Application (client) ID of "Auth demo - Api 1"
+#   - Api permissions:
+#     - Microsoft Graph: "User.Read"
+@tenant = {{$dotenv tenant}}
+
+##
+# Client application
+@app_client_id = {{$dotenv app_client_id}}
+##
+
+##
+# Api 1 application
+@api1_client_id = {{$dotenv api1_client_id}}
+@api1_client_secret = {{$dotenv api1_client_secret}}
+# Example: api://1ff1f829-1f1b-49da-b513-bdd18704b472
+@api1_resource_id = {{$dotenv api1_resource_id}}
+##
+
+##
+# Api 2 application
+@api2_client_id = {{$dotenv api2_client_id}}
+@api2_client_secret = {{$dotenv api2_client_secret}}
+# Example: api://1bef5a67-3f72-4a69-9331-2d5e78bfacaf
+@api2_resource_id = {{$dotenv api2_resource_id}}
+##
+
+### Initiate login process
+# Important note: There is no user consent displayed!
+# @name authResponse
+POST https://login.microsoftonline.com/{{tenant}}/oauth2/v2.0/devicecode HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+scope=offline_access {{api1_resource_id}}/.default
+&client_id={{app_client_id}}
+
+# Example response:
+# {
+#  "user_code": "DWXEFJ4PW",
+#  "device_code": "DAQA...1UgAA",
+#  "verification_uri": "https://microsoft.com/devicelogin",
+#  "expires_in": 900,
+#  "interval": 5,
+#  "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code DWXFFJ4PW to authenticate."
+# }
+
+### Fetch token
+# @name deviceCodeTokenResponse
+POST https://login.microsoftonline.com/{{tenant}}/oauth2/v2.0/token HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+client_id={{app_client_id}}
+&grant_type=urn:ietf:params:oauth:grant-type:device_code
+&device_code={{authResponse.response.body.device_code}}
+
+# Example response:
+# {
+#  "token_type": "Bearer",
+#  "scope": "api://1b0f77b0...20a1/Files.Read api://1b0f77b0...20a1/.default",
+#  "expires_in": 4216,
+#  "ext_expires_in": 4216,
+#  "access_token": "eyJ0e...R32A",
+#  "refresh_token": "0.AQwA...FPXII"
+# }
+#
+# Use https://jwt.ms to decode token:
+# {
+#  "aud": "api://1b0f77b0...20a1",
+#  // clipped
+#  "scp": "Files.Read",
+# }
+
+### Get token inside Api 1 to access Api 2
+# @name tokenResponse1
+POST https://login.microsoftonline.com/{{tenant}}/oauth2/v2.0/token HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+client_id={{api1_client_id}}
+&client_secret={{api1_client_secret}}
+&assertion={{deviceCodeTokenResponse.response.body.access_token}}
+&scope={{api2_resource_id}}/.default
+&grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
+&requested_token_use=on_behalf_of
+
+# Example response:
+# {
+#  "token_type": "Bearer",
+#  "scope": "api://d6deed60...d337/Backend.Read api://d6deed60...d337/.default",
+#  "expires_in": 4798,
+#  "ext_expires_in": 4798,
+#  "access_token": "eyJ0e...-k-KHg",
+#  "refresh_token": "0.AQw...Sz_Fw"
+# }
+#
+# Use https://jwt.ms to decode token:
+# {
+#  "aud": "api://d6deed60...d337",
+#  // clipped
+#  "scp": "Backend.Read",
+# }
+
+### Get token inside Api 2 to access Microsoft Graph
+# @name tokenResponse2
+POST https://login.microsoftonline.com/{{tenant}}/oauth2/v2.0/token HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+client_id={{api2_client_id}}
+&client_secret={{api2_client_secret}}
+&assertion={{tokenResponse1.response.body.access_token}}
+&scope=https://graph.microsoft.com/.default
+&grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
+&requested_token_use=on_behalf_of
+
+# Note: You might get following error, if you have not consented this permission:
+# {
+#  "error": "invalid_grant",
+#  "error_description": "AADSTS65001: The user or administrator has not consented 
+#    to use the application with ID 'd6deed60...d337' named 'Auth demo - Api 2'.
+#    Send an interactive authorization request for this user and resource.\r\n
+#    Trace ID: 389646ad-1595-4c48-af42-fa32af6ec800\r\n
+#    Correlation ID: d0287606-88ff-4cf5-a4e1-1ce2184ce94c\r\n
+#    Timestamp: 2022-04-07 10:44:03Z",
+#  "error_codes": [
+#    65001
+#  ],
+#  "timestamp": "2022-04-07 10:44:03Z",
+#  "trace_id": "389646ad-1595-4c48-af42-fa32af6ec800",
+#  "correlation_id": "d0287606-88ff-4cf5-a4e1-1ce2184ce94c",
+#  "suberror": "consent_required"
+# }
+# 
+# Solve by doing "Grant admin consent" at the portal.
+#
+# Example response:
+# {
+#  "token_type": "Bearer",
+#  "scope": "profile openid email https://graph.microsoft.com/User.Read https://graph.microsoft.com/.default",
+#  "expires_in": 4300,
+#  "ext_expires_in": 4300,
+#  "access_token": "eyJ...CoQ",
+#  "refresh_token": "0.AQ...oQ"
+# }
+#
+# Use https://jwt.ms to decode token:
+# {
+#   "aud": "https://graph.microsoft.com",
+#   // clipped
+#   "scp": "User.Read profile openid email",
+# }
+
+### Call Microsoft Graph API with received token inside Api 2
+GET https://graph.microsoft.com/v1.0/me HTTP/1.1
+Content-Type: application/json; charset=utf-8
+Authorization: Bearer {{tokenResponse2.response.body.access_token}}
+
+# Example response:
+# {
+#  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users/$entity",
+#  "businessPhones": [],
+#  // clipped
+#  "id": "652363db-89db-4e1b-a254-d2123d34dc56"
+# }
