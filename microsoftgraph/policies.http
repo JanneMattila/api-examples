@@ -1,0 +1,16 @@
+# Instructions:
+# - See API Reference (and especially required permissions): 
+# https://docs.microsoft.com/en-us/graph/api/resources/authorizationpolicy?view=graph-rest-beta
+#
+# Get access token using Azure CLI
+# az account get-access-token --resource https://graph.microsoft.com/ --query accessToken -o tsv | clip
+#
+@endpoint = https://graph.microsoft.com/beta
+
+@accessToken = {{$dotenv accessToken}}
+
+### Get policies
+# @name authorizationPolicy
+GET {{endpoint}}/policies/authorizationPolicy/authorizationPolicy HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}

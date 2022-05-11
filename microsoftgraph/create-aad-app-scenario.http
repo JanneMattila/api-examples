@@ -6,7 +6,7 @@
 # https://github.com/microsoftgraph/microsoftgraph-postman-collections
 #
 # - Alternative: Get access token using Azure CLI
-# az account get-access-token --resource https://graph.microsoft.com/
+# az account get-access-token --resource https://graph.microsoft.com/ --query accessToken -o tsv | clip
 #
 # - Study your tokens permissions:
 # https://jwt.ms/
@@ -18,7 +18,7 @@
 #
 @endpoint = https://graph.microsoft.com/beta
 
-@accessToken = token
+@accessToken = {{$dotenv accessToken}}
 
 ### Create application
 # @name application

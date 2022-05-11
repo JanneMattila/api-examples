@@ -1,6 +1,6 @@
-@tenant = your_tenant_id_here
-@clientID = your_app_id_here
-@clientSecret = your_secret_here
+@tenant = {{$dotenv tenant}}
+@clientID = {{$dotenv clientID}}
+@clientSecret = {{$dotenv clientSecret}}
 
 ### Get token via v2 endpoint
 # @name tokenResponse
