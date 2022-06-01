@@ -1,0 +1,66 @@
+# Instructions:
+# - Get access token using Azure CLI as yourself (dev scenarios)
+# az account get-access-token --resource https://management.azure.com --query accessToken -o tsv | clip
+#
+# - Get access token using Azure CLI as Service Principal
+# az login --service-principal --username APP_ID --password PASSWORD --tenant TENANT_ID
+# az account get-access-token --resource https://management.azure.com --query accessToken -o tsv | clip
+#
+# https://docs.microsoft.com/en-us/rest/api/authorization/role-assignments
+#
+# Credits:
+# https://github.com/arsenvlad/azure-managed-app-aks-managed-identity
+# https://docs.microsoft.com/en-us/azure/lighthouse/how-to/deploy-policy-remediation#deploy-policies-that-can-be-remediated
+# https://github.com/Azure/Azure-Lighthouse-samples/blob/master/templates/policy-enforce-keyvault-monitoring/enforceAzureMonitoredKeyVault.json
+# https://github.com/Azure/Azure-Lighthouse-samples/blob/master/templates/policy-add-or-replace-tag/addOrReplaceTag.json
+## 
+@endpoint = https://management.azure.com
+# https://docs.microsoft.com/en-us/azure/role-based-access-control/role-assignments-rest#new-service-principal
+# https://docs.microsoft.com/en-us/rest/api/authorization/versions#2019-04-01-preview
+@apiVersion = 2019-04-01-preview
+
+@subscription = {{$dotenv subscription}}
+
+# Example guid value
+@roleAssignmentName = da535d26-7607-499d-a827-21e669306103
+
+# Reader
+# https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#all
+@roleDefinitionId = acdd72a7-3385-48ef-bd42-f606fba81ae7
+
+# User managed identity principal id
+@principalId = {{$dotenv principalId}}
+
+# Delegated managed identity resource in format:
+# /subscriptions/<sub>/resourcegroups/<rg>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity>"
+@delegatedManagedIdentityResourceId = {{$dotenv delegatedManagedIdentityResourceId}}
+
+# echo "accessToken=$(az account get-access-token --resource https://management.azure.com --query accessToken -o tsv)" > .env
+@accessToken = {{$dotenv accessToken}}
+
+### Create role assignment
+PUT {{endpoint}}/subscriptions/{{subscription}}/providers/Microsoft.Authorization/roleAssignments/{{roleAssignmentName}}
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+{
+  "properties": {
+    "roleDefinitionId": "/subscriptions/{{subscription}}/providers/Microsoft.Authorization/roleDefinitions/{{roleDefinitionId}}",
+    "principalId": "{{principalId}}",
+    "principalType": "ServicePrincipal",
+    "delegatedManagedIdentityResourceId": "{{delegatedManagedIdentityResourceId}}" 
+  }
+}
+
+### Get role assignment
+GET {{endpoint}}/subscriptions/{{subscription}}/providers/Microsoft.Authorization/roleAssignments/{{roleAssignmentName}}
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+### Delete role assignment
+DELETE {{endpoint}}/subscriptions/{{subscription}}/providers/Microsoft.Authorization/roleAssignments/{{roleAssignmentName}}
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
