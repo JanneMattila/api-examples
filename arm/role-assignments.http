@@ -1,0 +1,51 @@
+# Instructions:
+# - Get access token using Azure CLI as yourself (dev scenarios)
+# az account get-access-token --resource https://management.azure.com --query accessToken -o tsv | clip
+#
+# - Get access token using Azure CLI as Service Principal
+# az login --service-principal --username APP_ID --password PASSWORD --tenant TENANT_ID
+# az account get-access-token --resource https://management.azure.com --query accessToken -o tsv | clip
+#
+# https://docs.microsoft.com/en-us/rest/api/authorization/role-assignments
+## 
+@endpoint = https://management.azure.com
+@apiVersion = 2015-07-01
+
+@subscription = {{$dotenv subscription}}
+
+# Example guid value
+@roleAssignmentName = da535d26-7607-499d-a827-21e669306103
+
+# Reader
+# https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#all
+@roleDefinitionId = acdd72a7-3385-48ef-bd42-f606fba81ae7
+
+@principalId = {{$dotenv principalId}}
+
+# echo "accessToken=$(az account get-access-token --resource https://management.azure.com --query accessToken -o tsv)" > .env
+@accessToken = {{$dotenv accessToken}}
+
+### Create role assignment
+PUT {{endpoint}}/subscriptions/{{subscription}}/providers/Microsoft.Authorization/roleAssignments/{{roleAssignmentName}}
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+{
+  "properties": {
+    "roleDefinitionId": "/subscriptions/{{subscription}}/providers/Microsoft.Authorization/roleDefinitions/{{roleDefinitionId}}",
+    "principalId": "{{principalId}}"
+  }
+}
+
+### Get role assignment
+GET {{endpoint}}/subscriptions/{{subscription}}/providers/Microsoft.Authorization/roleAssignments/{{roleAssignmentName}}
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+### Delete role assignment
+DELETE {{endpoint}}/subscriptions/{{subscription}}/providers/Microsoft.Authorization/roleAssignments/{{roleAssignmentName}}
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
