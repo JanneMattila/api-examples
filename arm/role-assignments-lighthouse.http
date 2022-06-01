@@ -1,3 +1,29 @@
+# Scenario:
+#
+# Use Service Principal in service provider tenant to
+# grant role assignments for managed identity in
+# customer tenant.
+#
+# Permissions required:
+# ---------------------
+# - "User Account Administrator" - 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9
+#   https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#user-access-administrator
+# - "Managed Identity Contributor" - e40ec5ca-96e0-45a2-b4ff-59039f2c2b59
+#   https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#managed-identity-contributor
+#
+# If you only have "User Account Administrator" role you might get following error:
+# {
+#   "error": {
+#     "code": "LinkedAuthorizationFailed",
+#     "message": "The client '52735ef2-354c-45de-a919-675bd182e0bc' with object id '52735ef2-354c-45de-a919-675bd182e0bc' 
+#      has permission to perform action 'Microsoft.Authorization/roleAssignments/write' on scope 
+#      '/subscriptions/93013103-8e77-4792-93ad-a89cad1dd832'; however, 
+#      it does not have permission to perform action 'Microsoft.ManagedIdentity/userAssignedIdentities/write' 
+#      on the linked scope(s) '/subscriptions/39...223/resourceGroups/rg-mi-northeurope/providers/Microsoft.ManagedIdentity/userAssignedIdentities/mi-northeurope'
+#      or the linked scope(s) are invalid."
+#   }
+# }
+#
 # Instructions:
 # - Get access token using Azure CLI as yourself (dev scenarios)
 # az account get-access-token --resource https://management.azure.com --query accessToken -o tsv | clip
@@ -19,7 +45,11 @@
 # https://docs.microsoft.com/en-us/rest/api/authorization/versions#2019-04-01-preview
 @apiVersion = 2019-04-01-preview
 
+# Customer subscription
 @subscription = {{$dotenv subscription}}
+
+# Customer tenant id
+@tenantId = {{$dotenv tenantId}}
 
 # Example guid value
 @roleAssignmentName = da535d26-7607-499d-a827-21e669306103
@@ -56,11 +86,13 @@ Content-type: application/json
 ### Get role assignment
 GET {{endpoint}}/subscriptions/{{subscription}}/providers/Microsoft.Authorization/roleAssignments/{{roleAssignmentName}}
     ?api-version={{apiVersion}}
+    &tenantid={{tenantId}}
 Authorization: Bearer {{accessToken}}
 Content-type: application/json
 
 ### Delete role assignment
 DELETE {{endpoint}}/subscriptions/{{subscription}}/providers/Microsoft.Authorization/roleAssignments/{{roleAssignmentName}}
     ?api-version={{apiVersion}}
+    &tenantid={{tenantId}}
 Authorization: Bearer {{accessToken}}
 Content-type: application/json
