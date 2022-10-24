@@ -77,6 +77,31 @@ Authorization: Bearer {{accessToken}}
 # Date: Mon, 24 Oct 2022 11:27:37 GMT
 # Connection: close
 
+### Create another claims mapping policy
+# @name newClaimsMappingPolicy2
+POST {{endpoint}}/policies/claimsMappingPolicies HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+    "definition": [
+        "{\"ClaimsMappingPolicy\":{\"Version\":1,\"IncludeBasicClaimSet\":\"true\",\"ClaimsSchema\": [{\"Source\":\"user\",\"ID\":\"mobilephone\",\"JwtClaimType\":\"mobilephone\"},{\"Source\":\"user\",\"ID\":\"department\",\"SamlClaimType\":\"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/department\",\"JwtClaimType\":\"department\"}]}}"
+    ],
+    "displayName": "JanneClaimsPolicy2"
+}
+
+# Example output:
+# {
+#   "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#policies/claimsMappingPolicies/$entity",
+#   "id": "69d7ca87-0c92-4fbe-b2a9-3cd8f3a97790",
+#   "deletedDateTime": null,
+#   "definition": [
+#     "{\"ClaimsMappingPolicy\":{\"Version\":1,\"IncludeBasicClaimSet\":\"true\",\"ClaimsSchema\": [{\"Source\":\"user\",\"ID\":\"mobilephone\",\"JwtClaimType\":\"mobilephone\"},{\"Source\":\"user\",\"ID\":\"department\",\"SamlClaimType\":\"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/department\",\"JwtClaimType\":\"department\"}]}}"
+#   ],
+#   "displayName": "JanneClaimsPolicy2",
+#   "isOrganizationDefault": false
+# }
+
 ### List assigned policies of service principal
 GET {{endpoint}}//servicePrincipals/{{servicePrincipalId}}/claimsMappingPolicies HTTP/1.1
 Content-type: application/json
