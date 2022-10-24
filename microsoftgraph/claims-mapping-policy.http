@@ -1,0 +1,105 @@
+# Instructions:
+# - See API Reference (and especially required permissions): 
+# https://learn.microsoft.com/en-us/graph/api/resources/claimsmappingpolicy?view=graph-rest-1.0#properties-of-a-claims-mapping-policy-definition
+#
+# az account get-access-token --resource https://graph.microsoft.com/ --query accessToken -o tsv | clip
+#
+# - Study your tokens permissions:
+# https://jwt.ms/
+#
+@endpoint = https://graph.microsoft.com/v1.0
+
+@accessToken = {{$dotenv accessToken}}
+
+# Get service principal id from "Enterprise applications" -> "Object ID"
+@servicePrincipalId = {{$dotenv servicePrincipalId}}
+
+### Get 
+# @name claimsMappingPoliciesList
+GET {{endpoint}}/policies/claimsMappingPolicies HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+# Example output if no policies:
+# {
+#   "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#policies/claimsMappingPolicies",
+#   "value": []
+# }
+#
+# Example output with newly created policy
+# {
+#   "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#policies/claimsMappingPolicies",
+#   "value": [
+#     {
+#       "id": "55bed89a-319e-43a2-83e8-e3688a32db1a",
+#       "deletedDateTime": null,
+#       "definition": [
+#         "{\"ClaimsMappingPolicy\":{\"Version\":1,\"IncludeBasicClaimSet\":\"true\",\"ClaimsSchema\": [{\"Source\":\"user\",\"ID\":\"userprincipalname\",\"SamlClaimType\":\"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier\"},{\"Source\":\"user\",\"ID\":\"givenname\",\"SamlClaimType\":\"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname\"},{\"Source\":\"user\",\"ID\":\"displayname\",\"SamlClaimType\":\"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name\"},{\"Source\":\"user\",\"ID\":\"surname\",\"SamlClaimType\":\"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname\"},{\"Source\":\"user\",\"ID\":\"userprincipalname\",\"SamlClaimType\":\"username\"}],\"ClaimsTransformation\":[{\"ID\":\"CreateTermsOfService\",\"TransformationMethod\":\"CreateStringClaim\",\"InputParameters\": [{\"ID\":\"value\",\"DataType\":\"string\", \"Value\":\"sandbox\"}],\"OutputClaims\":[{\"ClaimTypeReferenceId\":\"TOS\",\"TransformationClaimType\":\"createdClaim\"}]}]}}"
+#       ],
+#       "displayName": "JanneClaimsPolicy",
+#       "isOrganizationDefault": false
+#     }
+#   ]
+# }
+
+### Create new claims mapping policy
+# @name newClaimsMappingPolicy
+POST {{endpoint}}/policies/claimsMappingPolicies HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+    "definition": [
+        "{\"ClaimsMappingPolicy\":{\"Version\":1,\"IncludeBasicClaimSet\":\"true\",\"ClaimsSchema\": [{\"Source\":\"user\",\"ID\":\"userprincipalname\",\"SamlClaimType\":\"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier\"},{\"Source\":\"user\",\"ID\":\"givenname\",\"SamlClaimType\":\"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname\"},{\"Source\":\"user\",\"ID\":\"displayname\",\"SamlClaimType\":\"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name\"},{\"Source\":\"user\",\"ID\":\"surname\",\"SamlClaimType\":\"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname\"},{\"Source\":\"user\",\"ID\":\"userprincipalname\",\"SamlClaimType\":\"username\"}],\"ClaimsTransformation\":[{\"ID\":\"CreateTermsOfService\",\"TransformationMethod\":\"CreateStringClaim\",\"InputParameters\": [{\"ID\":\"value\",\"DataType\":\"string\", \"Value\":\"sandbox\"}],\"OutputClaims\":[{\"ClaimTypeReferenceId\":\"TOS\",\"TransformationClaimType\":\"createdClaim\"}]}]}}"
+    ],
+    "displayName": "JanneClaimsPolicy"
+}
+
+### Assign policy to service principal
+# @name assignClaimsMappingPolicy
+@claimsMappingPolicyId = {{newClaimsMappingPolicy.response.body.id}}
+POST {{endpoint}}//servicePrincipals/{{servicePrincipalId}}/claimsMappingPolicies/$ref HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "@odata.id":"https://graph.microsoft.com/v1.0/policies/claimsMappingPolicies/{{claimsMappingPolicyId}}"
+}
+
+# Example output:
+# HTTP/1.1 204 No Content
+# Cache-Control: no-cache
+# Strict-Transport-Security: max-age=31536000
+# request-id: 1df6274f-76c8-4410-ba22-50f0f341762e
+# client-request-id: 1df6274f-76c8-4410-ba22-50f0f341762e
+# x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"West Europe","Slice":"E","Ring":"5","ScaleUnit":"004","RoleInstance":"AM2PEPF0000BE59"}}
+# x-ms-resource-unit: 1
+# Date: Mon, 24 Oct 2022 11:27:37 GMT
+# Connection: close
+
+### List assigned policies of service principal
+GET {{endpoint}}//servicePrincipals/{{servicePrincipalId}}/claimsMappingPolicies HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+# Example output:
+# {
+#   "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#Collection(microsoft.graph.claimsMappingPolicy)",
+#   "value": [
+#     {
+#       "id": "55bed89a-319e-43a2-83e8-e3688a32db1a",
+#       "deletedDateTime": null,
+#       "definition": [
+#         "{\"ClaimsMappingPolicy\":{\"Version\":1,\"IncludeBasicClaimSet\":\"true\",\"ClaimsSchema\": [{\"Source\":\"user\",\"ID\":\"userprincipalname\",\"SamlClaimType\":\"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier\"},{\"Source\":\"user\",\"ID\":\"givenname\",\"SamlClaimType\":\"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname\"},{\"Source\":\"user\",\"ID\":\"displayname\",\"SamlClaimType\":\"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name\"},{\"Source\":\"user\",\"ID\":\"surname\",\"SamlClaimType\":\"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname\"},{\"Source\":\"user\",\"ID\":\"userprincipalname\",\"SamlClaimType\":\"username\"}],\"ClaimsTransformation\":[{\"ID\":\"CreateTermsOfService\",\"TransformationMethod\":\"CreateStringClaim\",\"InputParameters\": [{\"ID\":\"value\",\"DataType\":\"string\", \"Value\":\"sandbox\"}],\"OutputClaims\":[{\"ClaimTypeReferenceId\":\"TOS\",\"TransformationClaimType\":\"createdClaim\"}]}]}}"
+#       ],
+#       "displayName": "JanneClaimsPolicy",
+#       "isOrganizationDefault": false
+#     }
+#   ]
+# }
+
+### Delete application by id
+@claimsMappingPolicyId = {{newClaimsMappingPolicy.response.body.id}}
+DELETE {{endpoint}}/policies/claimsMappingPolicies/{{claimsMappingPolicyId}} HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}
