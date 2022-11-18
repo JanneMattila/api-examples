@@ -1,0 +1,52 @@
+# - Get access token using Azure CLI as yourself (dev scenarios)
+# az account get-access-token --resource https://management.azure.com
+#
+# - Get access token using Azure CLI as Service Principal
+# az login --service-principal --username APP_ID --password PASSWORD --tenant TENANT_ID
+# az account get-access-token --resource https://management.azure.com
+#
+# Relevant links:
+# - Default management group for subscriptions
+# https://learn.microsoft.com/en-us/azure/governance/management-groups/how-to/protect-resource-hierarchy#setting---default-management-group
+# - 
+@endpoint = https://management.azure.com
+@apiVersion = 2020-01-01-preview
+
+@managementGroupId = {{$dotenv managementGroupId}}
+
+# Workspace resource id
+@workspaceId = {{$dotenv workspaceId}} 
+@diagnosticSettingName = diag1
+
+@accessToken = {{$dotenv accessToken}}
+
+### Get management group details
+GET {{endpoint}}/providers/microsoft.management/managementGroups/{{managementGroupId}}?api-version=2021-04-01 HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+### Get management group diagnostic settings
+GET {{endpoint}}/providers/microsoft.management/managementGroups/{{managementGroupId}}/providers/microsoft.insights/diagnosticSettings?api-version={{apiVersion}} HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+### Update management group diagnostic settings
+PUT {{endpoint}}/providers/microsoft.management/managementGroups/{{managementGroupId}}/providers/microsoft.insights/diagnosticSettings/{{diagnosticSettingName}}?api-version={{apiVersion}} HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+{
+  "properties": {
+    "workspaceId": "{{workspaceId}}",
+    "logs": [
+      {
+        "category": "Administrative",
+        "enabled": true
+      },
+      {
+        "category": "Policy",
+        "enabled": true
+      }
+    ]
+  }
+}
