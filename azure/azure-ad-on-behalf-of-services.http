@@ -1,0 +1,206 @@
+# Scenario:
+# ---------
+#
+# You want to Azure AD based authentication
+# and leverage on-behalf-of flow
+# https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow
+# to pass user identity to the Azure services.
+#
+# This example shows following scenarios:
+# [Client App] -> [Storage account]
+# [Client App] -> [Blob service of storage account]
+# [Client App] -> [Azure SQL Database]
+#
+# How to setup auth demo:
+# -----------------------
+# (Note: Guids are clipped to prevent accidental copy-pasting of examples)
+# - Create App
+#   - Name: "OBO-Demo"
+#   - Allow public client flows: Yes
+#   - Api permissions:
+#     - Azure Storage: "user_personation"
+#     - Azure SQL Database: "user_personation"
+#
+# Links:
+# https://learn.microsoft.com/en-us/azure/storage/common/storage-auth-aad-app?tabs=dotnet#azure-storage-resource-id
+# https://techcommunity.microsoft.com/t5/azure-sql-blog/troubleshooting-problems-related-to-azure-ad-authentication-with/ba-p/1062991
+# https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow
+#
+@tenant = {{$dotenv tenant}}
+
+##
+# Client application
+@client_id = {{$dotenv client_id}}
+@client_secret = {{$dotenv client_secret}}
+##
+
+##
+# Storage account
+@storage_name = {{$dotenv storage_name}}
+##
+
+##
+# SQL Database
+@database_server_name = {{$dotenv database_server_name}}
+##
+
+### Scenario 1: Storage account
+# @name authResponse1
+POST https://login.microsoftonline.com/{{tenant}}/oauth2/v2.0/devicecode HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+scope=https://storage.azure.com/.default
+&client_id={{client_id}}
+
+# Example response:
+# {
+#  "user_code": "DWXEFJ4PW",
+#  "device_code": "DAQA...1UgAA",
+#  "verification_uri": "https://microsoft.com/devicelogin",
+#  "expires_in": 900,
+#  "interval": 5,
+#  "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code DWXFFJ4PW to authenticate."
+# }
+
+### Scenario 1: Fetch token
+# @name deviceCodeTokenResponse1
+POST https://login.microsoftonline.com/{{tenant}}/oauth2/v2.0/token HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+client_id={{client_id}}
+&client_secret={{client_secret}}
+&grant_type=urn:ietf:params:oauth:grant-type:device_code
+&device_code={{authResponse1.response.body.device_code}}
+&requested_token_use=on_behalf_of
+
+# Example response:
+# {
+#  "token_type": "Bearer",
+#  "scope": "https://storage.azure.com/user_impersonation https://storage.azure.com/.default",
+#  "expires_in": 4216,
+#  "ext_expires_in": 4216,
+#  "access_token": "eyJ0e...R32A",
+#  "refresh_token": "0.AQwA...FPXII"
+# }
+#
+# Use https://jwt.ms to decode token:
+# {
+#  "aud": "https://storage.azure.com",
+#  // clipped
+#  "scp": "user_impersonation",
+# }
+
+### Scenario 2: Specific storage account service
+# @name authResponse2
+POST https://login.microsoftonline.com/{{tenant}}/oauth2/v2.0/devicecode HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+scope=https://{{storage_name}}.blob.core.windows.net/.default
+&client_id={{client_id}}
+
+# Example response:
+# {
+#  "user_code": "DWXEFJ4PW",
+#  "device_code": "DAQA...1UgAA",
+#  "verification_uri": "https://microsoft.com/devicelogin",
+#  "expires_in": 900,
+#  "interval": 5,
+#  "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code DWXFFJ4PW to authenticate."
+# }
+
+### Scenario 2: Fetch token
+# @name deviceCodeTokenResponse2
+POST https://login.microsoftonline.com/{{tenant}}/oauth2/v2.0/token HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+client_id={{client_id}}
+&client_secret={{client_secret}}
+&grant_type=urn:ietf:params:oauth:grant-type:device_code
+&device_code={{authResponse2.response.body.device_code}}
+&requested_token_use=on_behalf_of
+
+# Example response:
+# {
+#  "token_type": "Bearer",
+#  "scope": "https://<storage_name>.blob.core.windows.net/user_impersonation https://<storage_name>.blob.core.windows.net/.default",
+#  "ext_expires_in": 4216,
+#  "access_token": "eyJ0e...R32A",
+#  "refresh_token": "0.AQwA...FPXII"
+# }
+#
+# Use https://jwt.ms to decode token:
+# {
+#  "aud": "https://<storage_name>.blob.core.windows.net",
+#  // clipped
+#  "scp": "user_impersonation",
+# }
+
+### Scenario 3: Azure SQL Database
+# @name authResponse3
+POST https://login.microsoftonline.com/{{tenant}}/oauth2/v2.0/devicecode HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+scope=https://database.windows.net/.default
+&client_id={{client_id}}
+
+# Example response:
+# {
+#  "user_code": "DWXEFJ4PW",
+#  "device_code": "DAQA...1UgAA",
+#  "verification_uri": "https://microsoft.com/devicelogin",
+#  "expires_in": 900,
+#  "interval": 5,
+#  "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code DWXFFJ4PW to authenticate."
+# }
+
+### Scenario 3: Fetch token
+# @name deviceCodeTokenResponse3
+POST https://login.microsoftonline.com/{{tenant}}/oauth2/v2.0/token HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+client_id={{client_id}}
+&client_secret={{client_secret}}
+&grant_type=urn:ietf:params:oauth:grant-type:device_code
+&device_code={{authResponse3.response.body.device_code}}
+&requested_token_use=on_behalf_of
+
+# Example response:
+# {
+#  "token_type": "Bearer",
+#  "scope": "https://database.windows.net/user_impersonation https://database.windows.net/.default",
+#  "ext_expires_in": 4216,
+#  "access_token": "eyJ0e...R32A",
+#  "refresh_token": "0.AQwA...FPXII"
+# }
+#
+# Use https://jwt.ms to decode token:
+# {
+#  "aud": "https://database.windows.net",
+#  // clipped
+#  "scp": "user_impersonation",
+# }
+
+### Scenario 4: Specific Azure SQL Database
+# @name authResponse4
+POST https://login.microsoftonline.com/{{tenant}}/oauth2/v2.0/devicecode HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+scope=https://{{database_server_name}}.database.windows.net/.default
+&client_id={{client_id}}
+
+# Example response:
+# {
+#  "user_code": "DWXEFJ4PW",
+#  "device_code": "DAQA...1UgAA",
+#  "verification_uri": "https://microsoft.com/devicelogin",
+#  "expires_in": 900,
+#  "interval": 5,
+#  "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code DWXFFJ4PW to authenticate."
+# }
+
+#
+# AADSTS500011: 
+# The resource principal named https://<database_server_name>.database.windows.net/ was not found in the tenant named Contoso. 
+# This can happen if the application has not been installed by the administrator of the tenant or consented to by any user in the tenant. 
+# You might have sent your authentication request to the wrong tenant.
+#
