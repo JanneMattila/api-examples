@@ -21,7 +21,6 @@
 ##
 # Client application
 @client_id = {{$dotenv client_id}}
-@client_secret = {{$dotenv client_secret}}
 ##
 
 ### Initiate login process
