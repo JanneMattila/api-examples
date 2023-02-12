@@ -16,8 +16,6 @@
 # - Create "API Management Client"
 #   - Name: "API Management Client"
 #   - Allow public client flows: Yes
-#   - Api permissions:
-#     - Auth demo - Api 1: "Files.Read"
 # - Create "Azure API Management Backend":
 #   - Name: "Azure API Management Backend"
 #   - Expose an API:
