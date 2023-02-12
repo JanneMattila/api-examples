@@ -1,0 +1,149 @@
+@tenant = {{$dotenv tenant}}
+
+##
+# Client application
+@app_client_id = {{$dotenv app_client_id}}
+##
+
+##
+# Api application
+@api_client_id = {{$dotenv api_client_id}}
+# Example: api://1ff1f829-1f1b-49da-b513-bdd18704b472
+@api_resource_id = {{$dotenv api_resource_id}}
+# Example: <your_apim>.azure-api.net
+@api_hostname = {{$dotenv api_hostname}}
+##
+
+### Initiate login process
+# @name authResponse
+POST https://login.microsoftonline.com/{{tenant}}/oauth2/v2.0/devicecode HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+scope={{api_resource_id}}/.default
+&client_id={{app_client_id}}
+
+# Example response:
+# {
+#  "user_code": "DWXEFJ4PW",
+#  "device_code": "DAQA...1UgAA",
+#  "verification_uri": "https://microsoft.com/devicelogin",
+#  "expires_in": 900,
+#  "interval": 5,
+#  "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code DWXFFJ4PW to authenticate."
+# }
+
+### Fetch token
+# @name deviceCodeTokenResponse
+POST https://login.microsoftonline.com/{{tenant}}/oauth2/v2.0/token HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+client_id={{app_client_id}}
+&grant_type=urn:ietf:params:oauth:grant-type:device_code
+&device_code={{authResponse.response.body.device_code}}
+
+
+# If no user assignment is required
+# ---------------------------------
+# Example response:
+# {
+#  "token_type": "Bearer",
+#  "scope": "api://api.jannemattila.com/apps/apim-gateway/Clusters.Read api://api.jannemattila.com/apps/apim-gateway/Clusters.ReadWrite api://api.jannemattila.com/apps/apim-gateway/.default",
+#  "expires_in": 4216,
+#  "ext_expires_in": 4216,
+#  "access_token": "eyJ0e...R32A"
+# }
+#
+# Use https://jwt.ms to decode token:
+# {
+#  "aud": "api://api.jannemattila.com/apps/apim-gateway",
+#  // clipped
+#  "scp": "Clusters.Read Clusters.ReadWrite",
+# }
+#
+# If user assignment is required but not set for current user
+# -----------------------------------------------------------
+# AADSTS50105: Your administrator has configured the application 
+# APIM Gateway ('6cc48ed3-3e69-41b4-9274-57271df7e9b2') to block users 
+# unless they are specifically granted ('assigned') access to the application. 
+# The signed in user 'admin@<domain>.onmicrosoft.com' is blocked because 
+# they are not a direct member of a group with access, nor had access directly 
+# assigned by an administrator. Please contact your administrator to assign 
+# access to this application.
+#
+# If user assignment is required and set for "Users" role
+# -------------------------------------------------------
+# Encoded token:
+# {
+#  "aud": "api://api.jannemattila.com/apps/apim-gateway",
+#  // clipped
+#  "scp": "Clusters.Read Clusters.ReadWrite",
+#  "roles": [
+#    "Users"
+#  ],
+# }
+#
+# If user assignment is required and set for "Admins" role
+# -------------------------------------------------------
+# Encoded token:
+# {
+#  "aud": "api://api.jannemattila.com/apps/apim-gateway",
+#  // clipped
+#  "scp": "Clusters.Read Clusters.ReadWrite",
+#  "roles": [
+#    "Admins"
+#  ],
+# }
+#
+# Note: If application is configured "groups" claim with settings
+# "Groups assigned to the application (recommended for large enterprise companies
+# to avoid exceeding the limit on the number of groups a token can emit)"
+# then you'll see list of you group assingments:
+#
+#  "groups": [
+#    "cbad2229-507d-4d04-be80-6e6b66ea8e12"
+#  ],
+#
+# If you have "Emit groups as role claims" setting enabled:
+#
+# "roles": [
+#   "cbad2229-507d-4d04-be80-6e6b66ea8e12"
+# ],
+
+### Get data from API Management
+GET https://{{api_hostname}}/clusters HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+Authorization: Bearer {{deviceCodeTokenResponse.response.body.access_token}}
+
+# Example response:
+# [
+#   {
+#     "id": 1,
+#     "name": "string-1",
+#     "zone": "string-1"
+#   },
+#   {
+#     "id": 2,
+#     "name": "string-2",
+#     "zone": "string-2"
+#   }
+# ]
+
+### Create data from API Management
+POST https://{{api_hostname}}/clusters HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+Authorization: Bearer {{deviceCodeTokenResponse.response.body.access_token}}
+
+{
+  "id": 3,
+  "name": "string-3",
+  "zone": "string-3"
+}
+
+# Example success response:
+# 201 Created
+#
+# Example error response:
+# {
+#   "statusCode": 401,
+#   "message": "Invalid Azure AD JWT"
+# }
