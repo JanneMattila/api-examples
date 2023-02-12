@@ -1,3 +1,31 @@
+# Scenario:
+# ---------
+#
+# You want to Azure AD based authentication
+# and authorization with your Azure API Management.
+# See more details here:
+# https://github.com/JanneMattila/some-questions-and-some-answers/blob/master/q%26a/azure_api_management.md
+#
+#
+# This example shows following flow:
+# [API Management Client] -> [Azure API Management Backend]
+#
+# How to setup auth demo:
+# -----------------------
+# (Note: Guids are clipped to prevent accidental copy-pasting of examples)
+# - Create "API Management Client"
+#   - Name: "API Management Client"
+#   - Allow public client flows: Yes
+#   - Api permissions:
+#     - Auth demo - Api 1: "Files.Read"
+# - Create "Azure API Management Backend":
+#   - Name: "Azure API Management Backend"
+#   - Expose an API:
+#     - Application ID URI: "api://api.jannemattila.com/apps/apim-gateway"
+#     - Scope: "Clusters.ReadWrite" and "Clusters.Read"
+#     - Authorized client application: Application (client) ID of "API Management Client"
+#   - Token configuration -> "Add groups claim":
+#     - Select "Groups assigned to the application ... to avoid exceeding the limit on the number of groups a token can emit)"
 @tenant = {{$dotenv tenant}}
 
 ##
