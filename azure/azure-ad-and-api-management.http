@@ -26,6 +26,9 @@
 #     - Authorized client application: Application (client) ID of "API Management Client"
 #   - Token configuration -> "Add groups claim":
 #     - Select "Groups assigned to the application ... to avoid exceeding the limit on the number of groups a token can emit)"
+#   - App roles -> "Create app roles":
+#     - Admins
+#     - Users
 @tenant = {{$dotenv tenant}}
 
 ##
