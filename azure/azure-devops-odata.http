@@ -1,14 +1,85 @@
-@endpoint = https://analytics.dev.azure.com/
+# https://learn.microsoft.com/en-us/azure/devops/report/extend-analytics/odata-query-guidelines?view=azure-devops
+# https://learn.microsoft.com/en-us/azure/devops/report/extend-analytics/odata-api-version?view=azure-devops
+# https://learn.microsoft.com/en-us/azure/devops/report/powerbi/overview?view=azure-devops
+# https://learn.microsoft.com/en-us/azure/devops/boards/queries/wiql-syntax?view=azure-devops
+# https://learn.microsoft.com/en-us/azure/devops/user-guide/service-limits?view=azure-devops
+#
+@analyticsendpoint = https://analytics.dev.azure.com/
+@endpoint = https://dev.azure.com/
 @organization = {{$dotenv organization}}
 @projectName = {{$dotenv projectName}}
 # base64(":" + pat)
 @auth = {{$dotenv pat}}
+@id = {{$dotenv id}}
 
-### Fetch workitems
-# @name workitems
-GET {{endpoint}}{{organization}}/{{projectName}}/_odata/v3.0-preview/WorkItems
-  ?$filter=startswith(Area/AreaPath,'{{projectName}}')
+### Fetch workitems using analytics endpoint
+GET {{analyticsendpoint}}{{organization}}/{{projectName}}/_odata/v2.0/WorkItems
+  ?$select=WorkItemId,Title,WorkItemType,State,CreatedDate
+  &$filter=startswith(Area/AreaPath,'{{projectName}}')
   &$orderby=CreatedDate desc
   &$top=10
 Content-type: application/json
 Authorization: Basic :{{auth}}
+
+### Fetch custom requirements using analytics endpoint
+GET {{analyticsendpoint}}{{organization}}/{{projectName}}/_odata/v2.0/WorkItems
+  ?$select=WorkItemId,Title,WorkItemType,State,CreatedDate
+  &$filter=WorkItemType eq 'My Custom Requirement'
+  &$orderby=CreatedDate desc
+  &$top=10
+Content-type: application/json
+Authorization: Basic :{{auth}}
+
+### Fetch custom requirements using analytics endpoint
+# NOTE: No select filtering!
+GET {{analyticsendpoint}}{{organization}}/{{projectName}}/_odata/v2.0/WorkItems
+  ?&$filter=WorkItemType eq 'My Custom Requirement'
+  &$orderby=CreatedDate desc
+  &$top=10
+Content-type: application/json
+Authorization: Basic :{{auth}}
+
+### Fetch specific workitem using Rest API
+# https://learn.microsoft.com/en-us/rest/api/azure/devops/wit/work-items/get-work-item?view=azure-devops-rest-7.0&tabs=HTTP
+GET {{endpoint}}{{organization}}/{{projectName}}/_apis/wit/workitems/{{id}}?api-version=7.0
+Content-type: application/json
+Authorization: Basic :{{auth}}
+
+### Fetch specific workitem field using Rest API
+GET {{endpoint}}{{organization}}/{{projectName}}/_apis/wit/workitems/{{id}}
+  ?api-version=7.0
+  &fields=Custom.MyUsers
+Content-type: application/json
+Authorization: Basic :{{auth}}
+
+### Fetch batch of workitems using Rest API
+# https://learn.microsoft.com/en-us/rest/api/azure/devops/wit/work-items/get-work-items-batch?view=azure-devops-rest-7.0&tabs=HTTP
+POST {{endpoint}}{{organization}}/{{projectName}}/_apis/wit/workitemsbatch?api-version=7.0
+Content-type: application/json
+Authorization: Basic :{{auth}}
+
+{
+  "ids": [
+    297,
+    299,
+    300,
+    {{id}}
+  ],
+  "fields": [
+    "System.Id",
+    "Custom.MyUsers"
+  ]
+}
+
+### Fetch using Wiql
+# https://learn.microsoft.com/en-us/rest/api/azure/devops/wit/wiql/query-by-wiql?view=azure-devops-rest-7.0&tabs=HTTP
+POST {{endpoint}}{{organization}}/{{projectName}}/_apis/wit/wiql?api-version=7.0
+Content-type: application/json
+Authorization: Basic :{{auth}}
+
+{
+  "query": "SELECT [System.Id], [System.Title], [System.State], [Custom.MyUsers]
+            FROM WorkItems 
+            WHERE [System.WorkItemType] = 'My Custom Requirement' AND [State] <> 'Closed' AND [State] <> 'Removed'
+            ORDER BY [Microsoft.VSTS.Common.Priority] asc, [System.CreatedDate] DESC"
+}
