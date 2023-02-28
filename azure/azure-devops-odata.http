@@ -1,0 +1,14 @@
+@endpoint = https://analytics.dev.azure.com/
+@organization = {{$dotenv organization}}
+@projectName = {{$dotenv projectName}}
+# base64(":" + pat)
+@auth = {{$dotenv pat}}
+
+### Fetch workitems
+# @name workitems
+GET {{endpoint}}{{organization}}/{{projectName}}/_odata/v3.0-preview/WorkItems
+  ?$filter=startswith(Area/AreaPath,'{{projectName}}')
+  &$orderby=CreatedDate desc
+  &$top=10
+Content-type: application/json
+Authorization: Basic :{{auth}}
