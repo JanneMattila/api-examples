@@ -19,11 +19,17 @@
 #   Application      User.ReadWrite.All, Directory.ReadWrite.All
 #
 @endpoint = https://graph.microsoft.com/v1.0
-@tenant = yourtenant.onmicrosoft.com
-@accessToken = token
+# yourtenant.onmicrosoft.com
+@tenant = {{$dotenv tenant}}
+@accessToken = {{$dotenv accessToken}}
 
 ### Get users
 GET {{endpoint}}/users
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+### Get users with additional properties
+GET {{endpoint}}/users?$select=accountEnabled,ageGroup,businessPhones,city,companyName,consentProvidedForMinor,country,createdDateTime,creationType,department,displayName,employeeId,externalUserState,givenName,id,identities,jobTitle,legalAgeGroupClassification,mail,mobilePhone,officeLocation,onPremisesSyncEnabled,otherMails,postalCode,proxyAddresses,state,streetAddress,surname,usageLocation,userPrincipalName,userType
 Authorization: Bearer {{accessToken}}
 Content-type: application/json
 
