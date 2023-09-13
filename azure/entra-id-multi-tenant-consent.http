@@ -7,10 +7,19 @@
 # https://learn.microsoft.com/en-us/azure/active-directory/develop/how-applications-are-added#what-are-service-principals-and-where-do-they-come-from
 # -> "The first person to give consent causes a service principal that represents the application to be added to the directory."
 #
+# Alternative, you can do this automatically. See example below.
+# You can use Azure CLI to get access token:
+# az account get-access-token --resource https://graph.microsoft.com/ -o tsv --query accessToken
+#
 
 ##
 # Client application
 @client_id = {{$dotenv client_id}}
+##
+
+##
+# Access token
+@access_token = {{$dotenv access_token}}
 ##
 
 ### Initiate login process
@@ -47,4 +56,62 @@ client_id={{client_id}}
 #  "expires_in": 4216,
 #  "ext_expires_in": 4216,
 #  "access_token": "eyJ0e...R32A"
+# }
+
+#######################################################
+# Alternative, you can do this automatically using
+# below APIs:
+#######################################################
+
+### Create service principal to target tenant using client application id
+# @name servicePrincipal
+POST https://graph.microsoft.com/v1.0/servicePrincipals HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+  "appId": "{{client_id}}"
+}
+
+# Response:
+# {
+#   "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#servicePrincipals/$entity",
+#   "id": "deb13040-a70a-42fa-ab76-afba7fe32caa",
+# ...
+#   "appId": "b99b48ff-db35-4958-8dbe-0e8acd56d401",
+#   "applicationTemplateId": null,
+#   "appOwnerOrganizationId": "f13b9d7d-da00-465f-b05a-0e8768b5bb1f",
+#   "servicePrincipalType": "Application",
+#   "signInAudience": "AzureADandPersonalMicrosoftAccount",
+# ...
+# }
+
+### Fetch service principal
+# @name servicePrincipalResponse
+GET https://graph.microsoft.com/v1.0/servicePrincipals?$filter=id eq '{{servicePrincipal.response.body.id}}'&$select=id,displayName,appId,oauth2PermissionScopes HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{access_token}}
+
+### Grant consent
+# @name consentResponse
+POST https://graph.microsoft.com/v1.0/oauth2PermissionGrants HTTP/1.1
+Authorization: Bearer {{access_token}}
+Content-type: application/json
+
+{
+   "clientId": "{{servicePrincipal.response.body.id}}",
+   "consentType": "AllPrincipals",
+   "resourceId": "{{servicePrincipal.response.body.id}}",
+   "scope": "https://graph.microsoft.com/.default"
+}
+
+# Response:
+# {
+#   "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#oauth2PermissionGrants/$entity",
+#   "clientId": "deb13040-a70a-42fa-ab76-afba7fe32caa",
+#   "consentType": "AllPrincipals",
+#   "id": "AVw...qMYs",
+#   "principalId": null,
+#   "resourceId": "deb13040-a70a-42fa-ab76-afba7fe32caa",
+#   "scope": "https://graph.microsoft.com/.default"
 # }
