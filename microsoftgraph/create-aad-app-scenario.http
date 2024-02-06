@@ -27,7 +27,27 @@ Content-type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "displayName": "AAD App Scenario"
+  "displayName": "AAD App Scenario",
+  "signInAudience": "AzureADMyOrg",
+  "requiredResourceAccess": [
+    {
+      "resourceAppId": "00000003-0000-0000-c000-000000000000",
+      "resourceAccess": [
+        {
+          "id": "e1fe6dd8-ba31-4d61-89e7-88639da4683d",
+          "type": "Scope"
+        }
+      ]
+    },
+  ],
+  "web": {
+    "implicitGrantSettings": {
+      "enableIdTokenIssuance": true
+    },
+    "redirectUris": [
+      "https://<yourapphere>.azurewebsites.net/.auth/login/aad/callback"
+    ]
+  }
 }
 
 ### Fetch application by id
