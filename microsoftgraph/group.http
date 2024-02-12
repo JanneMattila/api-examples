@@ -1,0 +1,58 @@
+# Instructions:
+# - See API Reference (and especially required permissions): 
+# https://learn.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-1.0&tabs=http
+#
+# - Alternative: Get access token using Azure CLI
+# az account get-access-token --resource https://graph.microsoft.com/ --query accessToken -o tsv | clip
+#
+# - Study your tokens permissions:
+# https://jwt.ms/
+#
+@endpoint = https://graph.microsoft.com/v1.0
+
+@accessToken = {{$dotenv accessToken}}
+
+### Create Microsoft 365 group
+# @name group
+POST {{endpoint}}/groups HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "displayName": "JanneGroup1",
+  "description": "Janne group 1",
+  "groupTypes": [
+    "Unified"
+  ],
+  "mailEnabled": false,
+  "mailNickname": "JanneGroup1",
+  "securityEnabled": true
+}
+
+### Create security group
+# @name group
+POST {{endpoint}}/groups HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "displayName": "JanneSecGroup1",
+  "description": "Janne security group 1",
+  "groupTypes": [
+  ],
+  "mailEnabled": false,
+  "mailNickname": "JanneSecGroup1",
+  "securityEnabled": true
+}
+
+### Fetch group by id
+# @name app
+@groupObjectId = {{group.response.body.id}}
+GET {{endpoint}}/groups/{{groupObjectId}} HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+### Delete group by id
+DELETE {{endpoint}}/groups/{{groupObjectId}} HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{accessToken}}
