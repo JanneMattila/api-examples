@@ -1,0 +1,55 @@
+# Instructions:
+# - Get access token (dev scenarios)
+# az account get-access-token --resource https://vault.azure.net
+# (Get-AzAccessToken -ResourceUrl https://vault.azure.net).Token | clip
+#
+# - Get access token using Azure CLI as Service Principal
+# az login --service-principal --username APP_ID --password PASSWORD --tenant TENANT_ID
+# az account get-access-token --resource https://management.azure.com
+#
+## 
+##
+@apiVersion = 7.4
+
+@vaultBaseUrl = {{$dotenv vaultBaseUrl}}
+@accessToken = {{$dotenv accessToken}}
+
+@issuer = Contoso
+@issuerAccount = {{$dotenv issuerAccount}}
+@issuerPassword = {{$dotenv issuerPassword}}
+
+###
+# @name getCertificatesResponse
+GET {{vaultBaseUrl}}/certificates?maxresults=25&includePending=true&api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+###
+# @name getIssuersResponse
+GET {{vaultBaseUrl}}/certificates/issuers?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+###
+# @name updateIssuersResponse
+PUT {{vaultBaseUrl}}/certificates/issuers/{{issuer}}?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+{
+  "provider": "Contoso Company",
+  "credentials": {
+    "account_id": "{{issuerAccount}}",
+    "pwd": "{{issuerPassword}}"
+  },
+  "org_details": {
+    "admin_details": [
+      {
+        "first_name": "John",
+        "last_name": "Doe",
+        "email": "admin@contoso.com",
+        "phone": "4255555555"
+      }
+    ]
+  }
+}

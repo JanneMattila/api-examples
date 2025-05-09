@@ -12,15 +12,21 @@
 ## 
 ##
 @endpoint = https://management.azure.com
-@apiVersion = 2020-09-01
+@apiVersion = 2021-04-01
 
-@subscription = your_subcription_id
+@subscription = {{$dotenv subscription}}
 
 @filter = resourceType eq 'Microsoft.Web/sites'
 @expand = createdTime,changedTime,provisioningState
-@accessToken = token
+@accessToken = {{$dotenv accessToken}}
 
 ### Get resources
 GET {{endpoint}}/subscriptions/{{subscription}}/resources?api-version={{apiVersion}}&$filter={{filter}}&$expand={{expand}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+
+### Get resources
+GET {{endpoint}}/subscriptions/{{subscription}}/resources?api-version={{apiVersion}}
 Authorization: Bearer {{accessToken}}
 Content-type: application/json

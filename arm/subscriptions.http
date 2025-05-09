@@ -1,0 +1,59 @@
+# Instructions:
+# - Get access token using Azure CLI as yourself (dev scenarios)
+# az account get-access-token --resource https://management.azure.com --query accessToken -o tsv | clip
+#
+# - Get access token using Azure CLI as Service Principal
+# az login --service-principal --username APP_ID --password PASSWORD --tenant TENANT_ID
+# az account get-access-token --resource https://management.azure.com --query accessToken -o tsv | clip
+#
+# https://learn.microsoft.com/en-us/rest/api/subscription
+## 
+@endpoint = https://management.azure.com
+@apiVersion = 2020-01-01
+
+# Example subscription name
+@subscriptionName = Generated-1
+
+@principalId = {{$dotenv principalId}}
+
+# echo "accessToken=$(az account get-access-token --resource https://management.azure.com --query accessToken -o tsv)" > .env
+@accessToken = {{$dotenv accessToken}}
+
+###
+GET https://management.azure.com/providers/Microsoft.Billing/enrollmentAccounts?api-version=2018-03-01-preview
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+###
+GET {{endpoint}}/providers/Microsoft.Billing/billingAccounts?api-version=2019-10-01-preview
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+### Get subscriptions
+GET {{endpoint}}/subscriptions?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+### Get subscription aliases
+GET {{endpoint}}/providers/Microsoft.Subscription/aliases?api-version=2021-10-01
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+### Create subscription
+PUT {{endpoint}}/subscriptions/{{subscription}}/providers/Microsoft.Authorization/roleAssignments/{{roleAssignmentName}}
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
+
+{
+  "properties": {
+    "roleDefinitionId": "/subscriptions/{{subscription}}/providers/Microsoft.Authorization/roleDefinitions/{{roleDefinitionId}}",
+    "principalId": "{{principalId}}"
+  }
+}
+
+### Delete role assignment
+DELETE {{endpoint}}/subscriptions/{{subscription}}/providers/Microsoft.Authorization/roleAssignments/{{roleAssignmentName}}
+    ?api-version={{apiVersion}}
+Authorization: Bearer {{accessToken}}
+Content-type: application/json

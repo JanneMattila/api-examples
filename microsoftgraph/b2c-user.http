@@ -66,3 +66,9 @@ Content-type: application/json
 GET {{endpoint}}/users/{{userObjectId}} HTTP/1.1
 Authorization: Bearer {{accessToken}}
 Content-type: application/json
+
+### Delete user
+@userObjectId = {{user.response.body.id}}
+DELETE {{endpoint}}/users/{{userObjectId}} HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-type: application/json
