@@ -1,5 +1,6 @@
 # https://learn.microsoft.com/en-us/azure/ai-services/agents/quickstart?pivots=rest-api
 @azureAIAgentsEndpoint = {{$dotenv azureAIAgentsEndpoint}}
+# az account get-access-token --resource "https://ml.azure.com/" --query accessToken -o tsv | clip
 @azureAIAgentsToken = {{$dotenv azureAIAgentsToken}}
 
 ###
