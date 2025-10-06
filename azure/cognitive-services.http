@@ -1,0 +1,110 @@
+# https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/identity-api-reference
+# https://learn.microsoft.com/en-us/rest/api/face/face-detection-operations/detect?view=rest-face-v1.2&tabs=HTTP
+# https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/reference-face-error-codes
+
+@endpoint = {{$dotenv endpoint}}
+
+# Authentication by API key or access token
+# az account get-access-token --resource "https://cognitiveservices.azure.com/.default" --query accessToken -o tsv | clip
+# @accessToken = {{$dotenv accessToken}}
+# Authorization: Bearer {{accessToken}}
+
+@apiKey = {{$dotenv apiKey}}
+
+@apiVersion = v1.2
+@model = detection_03
+
+### Image without faces
+POST {{endpoint}}/face/v1.2/detect
+  ?detectionModel={{model}}
+  &returnFaceId=false
+Ocp-Apim-Subscription-Key: {{apiKey}}
+Content-Type: application/octet-stream
+
+< /temp/image-no-faces.png
+
+# Response: 200 OK
+# []
+
+### Too big image (4100x4100 with a lot of details, 9,73 MB)
+POST {{endpoint}}/face/v1.2/detect
+  ?detectionModel={{model}}
+  &returnFaceId=false
+Ocp-Apim-Subscription-Key: {{apiKey}}
+Content-Type: application/octet-stream
+
+< /temp/image-too-big.png
+
+# Response: 400 InvalidImageSize
+# {
+#   "error": {
+#     "code": "InvalidImageSize",
+#     "message": "Image size is too big. The valid image file size should be no larger than 6MB."
+#   }
+# }
+
+### Image with one face
+POST {{endpoint}}/face/v1.2/detect
+  ?detectionModel={{model}}
+  &returnFaceId=false
+Ocp-Apim-Subscription-Key: {{apiKey}}
+Content-Type: application/octet-stream
+
+< /temp/image-one-face.png
+
+# Response: 200 OK
+# [
+#   {
+#     "faceRectangle": {
+#       "top": 131,
+#       "left": 687,
+#       "width": 235,
+#       "height": 273
+#     }
+#   }
+# ]
+
+### Image with four faces
+POST {{endpoint}}/face/v1.2/detect
+  ?detectionModel={{model}}
+  &returnFaceId=false
+Ocp-Apim-Subscription-Key: {{apiKey}}
+Content-Type: application/octet-stream
+
+< /temp/image-four-faces.png
+
+# Response: 200 OK
+# [
+#   {
+#     "faceRectangle": {
+#       "top": 395,
+#       "left": 177,
+#       "width": 75,
+#       "height": 129
+#     }
+#   },
+#   {
+#     "faceRectangle": {
+#       "top": 378,
+#       "left": 1266,
+#       "width": 72,
+#       "height": 122
+#     }
+#   },
+#   {
+#     "faceRectangle": {
+#       "top": 373,
+#       "left": 528,
+#       "width": 75,
+#       "height": 112
+#     }
+#   },
+#   {
+#     "faceRectangle": {
+#       "top": 360,
+#       "left": 903,
+#       "width": 70,
+#       "height": 115
+#     }
+#   }
+# ]
