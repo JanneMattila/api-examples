@@ -6,8 +6,6 @@
 # You want to give admin consent to newly created applications
 # using permission: DelegatedPermissionGrant.ReadWrite.All
 
-### Initiate login process
-# @name authResponse
 @tenant = {{$dotenv tenant}}
 @clientID = {{$dotenv clientID}}
 @clientSecret = {{$dotenv clientSecret}}
@@ -30,6 +28,12 @@ client_id={{clientID}}
 #   "access_token": "eyJ...xwQ"
 # }
 
+### Find all owned applications
+# @name ownedApplications
+GET https://graph.microsoft.com/v1.0/servicePrincipals(appId='{{clientID}}')/ownedObjects HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{tokenResponse.response.body.access_token}}
+
 ### Create application in the tenant
 # @name application
 POST https://graph.microsoft.com/v1.0/applications HTTP/1.1
@@ -39,6 +43,12 @@ Authorization: Bearer {{tokenResponse.response.body.access_token}}
 {
   "displayName": "App Created 1"
 }
+
+### Get application owner of one specific application
+# @name applicationOwner
+GET https://graph.microsoft.com/v1.0/applications/{{application.response.body.id}}/owners HTTP/1.1
+Content-type: application/json
+Authorization: Bearer {{tokenResponse.response.body.access_token}}
 
 ### Create service principal to the tenant
 # @name servicePrincipal
@@ -112,10 +122,9 @@ Content-type: application/json
 #   "scope": "offline_access User.Read email profile openid"
 # }
 
-
 ### Fetch a "random" service principal
 # @name servicePrincipalResponseRandom
-GET https://graph.microsoft.com/v1.0/servicePrincipals?$filter=displayName eq 'Random'&$select=id,displayName,appId,oauth2PermissionScopes HTTP/1.1
+GET https://graph.microsoft.com/v1.0/servicePrincipals?$filter=displayName eq 'Random' HTTP/1.1
 Content-type: application/json
 Authorization: Bearer {{tokenResponse.response.body.access_token}}
 
