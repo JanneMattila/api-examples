@@ -1,0 +1,59 @@
+# https://learn.microsoft.com/en-us/azure/azure-monitor/metrics/metrics-store-custom-rest-api?tabs=rest
+#
+# Role: Monitoring Metrics Publisher
+# 
+@tenant = {{$dotenv tenant}}
+@client_id = {{$dotenv client_id}}
+@resource_id = {{$dotenv resource_id}}
+@region = {{$dotenv region}}
+
+@client_secret = {{$dotenv client_secret}}
+
+### Get token
+# @name tokenResponse
+POST https://login.microsoftonline.com/{{tenant}}/oauth2/v2.0/token HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+client_id={{client_id}}
+&client_secret={{client_secret}}
+&scope=https://monitoring.azure.com/.default
+&grant_type=client_credentials
+
+### Create custom metric
+# @name createCustomMetric
+POST https://{{region}}.monitoring.azure.com{{resource_id}}/metrics HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{tokenResponse.response.body.access_token}}
+
+{
+    "time": "{{$datetime iso8601}}",
+    "data": {
+      "baseData": {
+        "metric": "Memory Bytes in Use",
+        "namespace": "Memory Profile",
+        "dimNames": [
+          "Process"
+        ],
+        "series": [
+          {
+            "dimValues": [
+              "ContosoApp.exe"
+            ],
+            "min": 10,
+            "max": 89,
+            "sum": 190,
+            "count": 4
+          },
+          {
+            "dimValues": [
+              "SalesApp.exe"
+            ],
+            "min": 10,
+            "max": 23,
+            "sum": 86,
+            "count": 4
+          }
+        ]
+      }
+    }
+}
