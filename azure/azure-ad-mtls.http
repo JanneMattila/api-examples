@@ -17,7 +17,7 @@
 
 ### Get token via v2 endpoint
 # @name tokenResponse
-POST https://mtlsauth.microsoft.com/{{tenant}}/oauth2/v2.0/token HTTP/1.1
+POST https://mtlsauth.microsoft.com/{{tenant}}/oauth2/v2.0/token?dc=ESTSR-PUB-WUS3-AZ1-TEST1&slice=TestSlice HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 
 client_id={{clientID}}
@@ -26,6 +26,10 @@ client_id={{clientID}}
 
 # HTTP/1.1 412 Precondition Failed
 # AADSTS51000: MtlsClientAuth is/are disabled
+#
+# With: ?dc=ESTSR-PUB-WUS3-AZ1-TEST1&slice=TestSlice
+# HTTP/1.1 400 Bad Request
+# AADSTS50002: This tenant isn't supported for this authentication method yet.
 
 ### Call Microsoft Graph API with received token
 GET https://graph.microsoft.com/v1.0/users HTTP/1.1
