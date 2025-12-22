@@ -1,0 +1,33 @@
+# openssl genrsa -out server.key 2048
+# openssl req -new -x509 -key server.key -out server.crt -days 365 -subj "/CN=MyApp"
+# Upload server.crt to Entra App Registration's "Certificates & secrets" as a "Upload certificate"
+#
+# Create following file to ".vscode/settings.json":
+# {
+#     "rest-client.certificates": {
+#         "mtlsauth.microsoft.com": {
+#             "cert": ".vscode/server.crt",
+#             "key": ".vscode/server.key"
+#         }        
+#     }
+# }
+
+@tenant = {{$dotenv tenant}}
+@clientID = {{$dotenv clientID}}
+
+### Get token via v2 endpoint
+# @name tokenResponse
+POST https://mtlsauth.microsoft.com/{{tenant}}/oauth2/v2.0/token HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+client_id={{clientID}}
+&scope=https://graph.microsoft.com/.default
+&grant_type=client_credentials
+
+# HTTP/1.1 412 Precondition Failed
+# AADSTS51000: MtlsClientAuth is/are disabled
+
+### Call Microsoft Graph API with received token
+GET https://graph.microsoft.com/v1.0/users HTTP/1.1
+Content-Type: application/json; charset=utf-8
+Authorization: Bearer {{tokenResponse.response.body.access_token}}
