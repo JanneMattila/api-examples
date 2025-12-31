@@ -17,7 +17,7 @@
 
 ### Get token via v2 endpoint
 # @name tokenResponse
-POST https://mtlsauth.microsoft.com/{{tenant}}/oauth2/v2.0/token?dc=ESTSR-PUB-WUS3-AZ1-TEST1&slice=TestSlice HTTP/1.1
+POST https://mtlsauth.microsoft.com/{{tenant}}/oauth2/v2.0/token HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 
 client_id={{clientID}}
